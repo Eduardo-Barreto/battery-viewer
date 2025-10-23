@@ -296,4 +296,36 @@ export class ChartManager {
     exportAsImage() {
         return this.chart.toBase64Image();
     }
+
+    /**
+     * Export chart data
+     * @returns {Object} Chart data with labels and datasets
+     */
+    exportData() {
+        return {
+            labels: [...this.labels],
+            datasets: this.chart.data.datasets.map(ds => ({
+                label: ds.label,
+                data: [...ds.data],
+                borderColor: ds.borderColor,
+                backgroundColor: ds.backgroundColor
+            }))
+        };
+    }
+
+    /**
+     * Get current data point count
+     * @returns {number} Number of data points
+     */
+    getDataPointCount() {
+        return this.labels.length;
+    }
+
+    /**
+     * Get all cell names being tracked
+     * @returns {Array} Array of cell names
+     */
+    getTrackedCells() {
+        return Array.from(this.datasets.keys());
+    }
 }

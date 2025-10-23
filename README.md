@@ -7,10 +7,12 @@ A modern, real-time battery monitoring interface for serial-connected battery re
 - **Real-time monitoring** - Live voltage readings from serial port
 - **Individual cell tracking** - Monitor each cell voltage independently
 - **Historical charts** - Visualize voltage trends over time with Chart.js
+- **Data export** - Export readings and history in JSON, CSV, or PNG formats
 - **Module details** - View raw ADC values and pin configurations
 - **Dark mode** - GitHub Primer-inspired dark theme
 - **Responsive design** - Works on desktop and mobile devices
 - **Clean architecture** - Modular, maintainable code structure
+- **Keyboard shortcuts** - Quick access to common actions
 
 ## Requirements
 
@@ -41,6 +43,24 @@ Install the "Live Server" extension and click "Go Live"
 ### Keyboard Shortcuts
 - `Ctrl/Cmd + K` - Toggle connection
 - `Ctrl/Cmd + L` - Clear chart
+- `Esc` - Close export menu
+
+### Exporting Data
+
+The application provides comprehensive data export functionality through the **Export** dropdown menu:
+
+**Current Reading**
+- **JSON Format** - Export the current battery reading with all details (cells, modules, raw values)
+- **CSV Format** - Export current reading in tabular format for Excel/spreadsheet analysis
+
+**Chart History**
+- **JSON Format** - Export all historical voltage data from the chart
+- **CSV Format** - Export chart data as time-series spreadsheet (timestamps + cell voltages)
+
+**Chart Image**
+- **PNG Format** - Export the voltage history chart as a high-resolution image
+
+All exported files are automatically timestamped to prevent overwriting.
 
 ## Architecture
 
@@ -125,6 +145,45 @@ getCellStatus(voltage) {
 Modify chart options in `chart-manager.js:103`:
 ```javascript
 this.maxDataPoints = 50; // Number of data points to display
+```
+
+### Export Formats
+
+**JSON Current Reading Example:**
+```json
+{
+  "timestamp": "2025-01-22T21:30:45.123Z",
+  "totalVoltage": 7.95,
+  "cellCount": 2,
+  "cells": [
+    {
+      "name": "1S",
+      "number": 1,
+      "voltage": 3.963,
+      "individualVoltage": 3.963,
+      "raw": 22645,
+      "module": 1,
+      "pin": "A0",
+      "status": "good"
+    }
+  ],
+  "modules": [...]
+}
+```
+
+**CSV Current Reading Example:**
+```csv
+Timestamp,Cell,Cumulative Voltage (V),Individual Voltage (V),RAW,Module,Pin,Status
+21:30:45,1S,3.963,3.963,22645,1,A0,good
+21:30:45,2S,7.953,3.990,22723,1,A1,good
+```
+
+**CSV Chart History Example:**
+```csv
+Timestamp,1S,2S
+21:19:24,3.963,3.990
+21:19:41,3.965,3.992
+21:19:50,3.964,3.991
 ```
 
 ### Serial Port Settings

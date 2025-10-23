@@ -30,7 +30,14 @@ class BatteryMonitor {
             lastUpdate: document.getElementById('lastUpdate'),
             readingCount: document.getElementById('readingCount'),
             clearChartBtn: document.getElementById('clearChartBtn'),
-            voltageChart: document.getElementById('voltageChart')
+            voltageChart: document.getElementById('voltageChart'),
+            exportBtn: document.getElementById('exportBtn'),
+            exportMenu: document.getElementById('exportMenu'),
+            exportCurrentJSON: document.getElementById('exportCurrentJSON'),
+            exportCurrentCSV: document.getElementById('exportCurrentCSV'),
+            exportHistoryJSON: document.getElementById('exportHistoryJSON'),
+            exportHistoryCSV: document.getElementById('exportHistoryCSV'),
+            exportChartImage: document.getElementById('exportChartImage')
         };
 
         this.init();
@@ -70,6 +77,45 @@ class BatteryMonitor {
         // Clear chart button
         this.elements.clearChartBtn.addEventListener('click', () => this.clearChart());
 
+        // Export dropdown toggle
+        this.elements.exportBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleExportMenu();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.elements.exportMenu.contains(e.target) && e.target !== this.elements.exportBtn) {
+                this.closeExportMenu();
+            }
+        });
+
+        // Export buttons
+        this.elements.exportCurrentJSON.addEventListener('click', () => {
+            this.exportJSON();
+            this.closeExportMenu();
+        });
+
+        this.elements.exportCurrentCSV.addEventListener('click', () => {
+            this.exportCSV();
+            this.closeExportMenu();
+        });
+
+        this.elements.exportHistoryJSON.addEventListener('click', () => {
+            this.exportHistoryJSON();
+            this.closeExportMenu();
+        });
+
+        this.elements.exportHistoryCSV.addEventListener('click', () => {
+            this.exportHistoryCSV();
+            this.closeExportMenu();
+        });
+
+        this.elements.exportChartImage.addEventListener('click', () => {
+            this.exportChartImage();
+            this.closeExportMenu();
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Ctrl/Cmd + K to connect
@@ -82,7 +128,25 @@ class BatteryMonitor {
                 e.preventDefault();
                 this.clearChart();
             }
+            // Escape to close dropdown
+            if (e.key === 'Escape') {
+                this.closeExportMenu();
+            }
         });
+    }
+
+    /**
+     * Toggle export menu visibility
+     */
+    toggleExportMenu() {
+        this.elements.exportMenu.classList.toggle('show');
+    }
+
+    /**
+     * Close export menu
+     */
+    closeExportMenu() {
+        this.elements.exportMenu.classList.remove('show');
     }
 
     /**
@@ -337,12 +401,14 @@ class BatteryMonitor {
      */
     exportJSON() {
         if (!this.lastReading) {
-            this.showError('No data to export');
+            this.showError('No data to export. Please connect and receive at least one reading.');
             return;
         }
 
         const json = this.parser.exportJSON(this.lastReading);
-        this.downloadFile('battery-reading.json', json, 'application/json');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        this.downloadFile(`battery-reading-${timestamp}.json`, json, 'application/json');
+        console.log('Exported current reading as JSON');
     }
 
     /**
@@ -350,12 +416,85 @@ class BatteryMonitor {
      */
     exportCSV() {
         if (!this.lastReading) {
-            this.showError('No data to export');
+            this.showError('No data to export. Please connect and receive at least one reading.');
             return;
         }
 
         const csv = this.parser.exportCSV(this.lastReading);
-        this.downloadFile('battery-reading.csv', csv, 'text/csv');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        this.downloadFile(`battery-reading-${timestamp}.csv`, csv, 'text/csv');
+        console.log('Exported current reading as CSV');
+    }
+
+    /**
+     * Export chart history as JSON
+     */
+    exportHistoryJSON() {
+        const historyData = this.chartManager.exportData();
+
+        if (!historyData || historyData.labels.length === 0) {
+            this.showError('No chart history to export. Please collect some data first.');
+            return;
+        }
+
+        const json = JSON.stringify(historyData, null, 2);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        this.downloadFile(`battery-history-${timestamp}.json`, json, 'application/json');
+        console.log('Exported chart history as JSON');
+    }
+
+    /**
+     * Export chart history as CSV
+     */
+    exportHistoryCSV() {
+        const historyData = this.chartManager.exportData();
+
+        if (!historyData || historyData.labels.length === 0) {
+            this.showError('No chart history to export. Please collect some data first.');
+            return;
+        }
+
+        // Build CSV
+        const headers = ['Timestamp', ...historyData.datasets.map(ds => ds.label)];
+        const rows = [headers];
+
+        for (let i = 0; i < historyData.labels.length; i++) {
+            const row = [historyData.labels[i]];
+            for (const dataset of historyData.datasets) {
+                row.push(dataset.data[i] !== undefined ? dataset.data[i].toFixed(3) : '');
+            }
+            rows.push(row);
+        }
+
+        const csv = rows.map(row => row.join(',')).join('\n');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        this.downloadFile(`battery-history-${timestamp}.csv`, csv, 'text/csv');
+        console.log('Exported chart history as CSV');
+    }
+
+    /**
+     * Export chart as image
+     */
+    exportChartImage() {
+        try {
+            const imageData = this.chartManager.exportAsImage();
+
+            if (!imageData) {
+                this.showError('Failed to export chart as image.');
+                return;
+            }
+
+            // Convert base64 to blob and download
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const link = document.createElement('a');
+            link.href = imageData;
+            link.download = `battery-chart-${timestamp}.png`;
+            link.click();
+            console.log('Exported chart as image');
+        } catch (error) {
+            console.error('Error exporting chart image:', error);
+            this.showError('Failed to export chart as image.');
+        }
     }
 
     /**

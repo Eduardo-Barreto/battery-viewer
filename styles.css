@@ -93,6 +93,12 @@ body {
     gap: var(--space-4);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
 .title {
     display: flex;
     align-items: center;
@@ -201,6 +207,76 @@ body {
 .btn-icon {
     width: 16px;
     height: 16px;
+}
+
+/* Dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    min-width: 240px;
+    background: var(--color-canvas-subtle);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all var(--transition-base);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    background: transparent;
+    color: var(--color-fg-default);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--transition-base);
+}
+
+.dropdown-item:hover {
+    background: var(--color-canvas-default);
+}
+
+.dropdown-item:active {
+    background: var(--color-canvas-inset);
+}
+
+.dropdown-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dropdown-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-fg-muted);
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: var(--space-1) 0;
+    background: var(--color-border-default);
 }
 
 /* Main Content */
@@ -508,6 +584,19 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--space-2);
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .dropdown {
+        flex: 1;
+    }
+
+    .dropdown .btn {
+        width: 100%;
     }
 
     .voltage-value {
